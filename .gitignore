@@ -1,0 +1,42 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caches
+.mypy_cache/
+.pytest_cache/
+.cache/
+
+# Virtual environment
+venv/
+.env/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Pytest
+.pytest_cache/
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# Secrets
+.streamlit/secrets.toml
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
