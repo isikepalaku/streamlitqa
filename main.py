@@ -6,11 +6,20 @@ from openai import OpenAI
 from typing import List, Dict
 
 def initialize_session_state():
-    """Inisialisasi session state untuk menyimpan API keys."""
+    """Inisialisasi session state untuk menyimpan API keys dan pengaturan."""
+    # Inisialisasi API keys
     if 'openai_api_key' not in st.session_state:
         st.session_state.openai_api_key = ''
     if 'jina_api_key' not in st.session_state:
         st.session_state.jina_api_key = ''
+    
+    # Inisialisasi pengaturan model
+    if 'temperature' not in st.session_state:
+        st.session_state.temperature = 0.7
+    
+    # Inisialisasi status proses
+    if 'processing_status' not in st.session_state:
+        st.session_state.processing_status = ''
 
 def scrape_website(url: str, jina_api_key: str) -> str:
     """Melakukan scraping website menggunakan Jina AI Reader API."""
@@ -23,21 +32,17 @@ def scrape_website(url: str, jina_api_key: str) -> str:
         st.error(f"Error saat melakukan scraping website: {e}")
         return ""
 
-def generate_filename() -> str:
-    """Menghasilkan nama file berdasarkan timestamp."""
-    timestamp = time.strftime("%Y%m%d-%H%M%S")
-    return f"scraped_data_{timestamp}"
-
-def clean_data(text: str, openai_client) -> str:
+def clean_data(text: str, openai_client, temperature: float) -> str:
     """Membersihkan data hasil scraping menggunakan OpenAI."""
     prompt = f"Bersihkan teks berikut dan buat menjadi lebih terstruktur:\n\n{text}"
     try:
         response = openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "Kamu adalah asisten AI yang bertugas membersihkan dan menstrukturkan data teks menjadi mudah dibaca manusia."},
+                {"role": "system", "content": "Kamu adalah asisten AI yang bertugas membersihkan dan menstrukturkan data teks."},
                 {"role": "user", "content": prompt}
-            ]
+            ],
+            temperature=temperature
         )
         if response.choices and response.choices[0].message and response.choices[0].message.content:
             return response.choices[0].message.content.strip()
@@ -48,8 +53,8 @@ def clean_data(text: str, openai_client) -> str:
         st.error(f"Error saat membersihkan data: {e}")
         return text
 
-def generate_questions(document: str, openai_client, num_questions: int = 5) -> List[str]:
-    """Menghasilkan pertanyaan berdasarkan dokumen menggunakan OpenAI."""
+def generate_questions(document: str, openai_client, num_questions: int = 5, temperature: float = 0.7) -> List[str]:
+    """Menghasilkan pertanyaan berdasarkan dokumen."""
     prompt = f"""Berdasarkan dokumen berikut, buatlah {num_questions} pertanyaan yang mendetail dan beragam. 
     Pertanyaan-pertanyaan ini harus mencerminkan analisis mendalam tentang isi dokumen:
 
@@ -63,7 +68,8 @@ def generate_questions(document: str, openai_client, num_questions: int = 5) -> 
             messages=[
                 {"role": "system", "content": "Anda adalah seorang penyidik. Tugas Anda adalah mencari dan mengidentifikasi tindak pidana, serta bertanya tentang pasal yang relevan yang dapat digunakan untuk melaporkan tindak pidana yang ditemukan berdasarkan undang-undang di Indonesia. Anda akan membuat pertanyaan yang bertujuan untuk mengonfirmasi tindak pidana dan mengidentifikasi pasal yang sesuai, termasuk bukti atau elemen yang diperlukan untuk melengkapi laporan pidana. Pastikan pertanyaan Anda membantu menelusuri apakah elemen-elemen tindak pidana terpenuhi dan bagaimana tindak pidana tersebut dapat dilaporkan."},
                 {"role": "user", "content": prompt}
-            ]
+            ],
+            temperature=temperature
         )
         
         content = response.choices[0].message.content if response.choices else None
@@ -81,22 +87,23 @@ def generate_questions(document: str, openai_client, num_questions: int = 5) -> 
         st.error(f"Error saat menghasilkan pertanyaan: {e}")
         return [f"Pertanyaan default {i+1}" for i in range(num_questions)]
 
-def get_ai_answer(question: str, document: str, openai_client) -> str:
+def get_ai_answer(question: str, document: str, openai_client, temperature: float) -> str:
     """Mendapatkan jawaban dari OpenAI."""
     prompt = f"""Berdasarkan dokumen berikut:
 
     {document}
 
-    Jawablah pertanyaan ini dengan detail dan akurat fokus terhadap hukum pidana:
+    Jawablah pertanyaan ini dengan detail dan akurat:
     {question}"""
 
     try:
         response = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Anda adalah seorang penyidik kepolisian Indonesia yang sangat ahli dalam hukum pidana dan khususnya dalam penerapan pasal-pasal lex specialis dalam undang-undang. Tugas Anda adalah memberikan jawaban yang rinci dan akurat terkait penerapan pasal dalam undang-undang yang relevan. Ketika menjawab, sebutkan pasal yang berlaku, jelaskan bagaimana pasal tersebut diterapkan dalam konteks kasus yang diberikan, dan sebutkan elemen-elemen hukum yang harus dipenuhi untuk pasal tersebut dapat diterapkan. Berikan juga contoh nyata atau hipotetis yang menunjukkan bagaimana pasal tersebut telah atau dapat diterapkan."},
                 {"role": "user", "content": prompt}
-            ]
+            ],
+            temperature=temperature
         )
         
         if response.choices and response.choices[0].message:
@@ -111,21 +118,25 @@ def get_ai_answer(question: str, document: str, openai_client) -> str:
         return "Terjadi kesalahan saat menghasilkan jawaban."
 
 def save_to_csv(qa_pairs: List[Dict], filename: str) -> str:
-    """Menyimpan pertanyaan dan jawaban ke file CSV tanpa header."""
+    """Menyimpan pertanyaan dan jawaban ke file CSV."""
     df = pd.DataFrame(qa_pairs)
     csv_file = f"{filename}.csv"
-    df.to_csv(csv_file, index=False, header=False)
+    df.to_csv(csv_file, index=False)
     return csv_file
 
 def main():
+    # Inisialisasi session state
     initialize_session_state()
     
-    st.title("Web Scraper dengan Jina AI dan OpenAI")
-    st.write("Masukkan API keys dan URL untuk melakukan scraping dan menghasilkan pertanyaan serta jawaban.")
+    st.title("ZANDREGSS BOT")
+    st.write("Masukkan API keys dan URL untuk menjalankan.")
 
-    # Sidebar untuk input API keys
+    # Sidebar untuk input API keys dan pengaturan
     with st.sidebar:
-        st.header("API Key Configuration")
+        st.header("Konfigurasi")
+        
+        # API Keys section
+        st.subheader("API Keys")
         openai_api_key = st.text_input("Masukkan OpenAI API Key:", type="password", key="openai_key_input")
         jina_api_key = st.text_input("Masukkan Jina AI API Key:", type="password", key="jina_key_input")
         
@@ -133,6 +144,27 @@ def main():
             st.session_state.openai_api_key = openai_api_key
             st.session_state.jina_api_key = jina_api_key
             st.success("API Keys berhasil disimpan!")
+        
+        # Temperature setting
+        st.subheader("Pengaturan Model")
+        temperature = st.slider(
+            "Temperatur (Kreativitas)",
+            min_value=0.0,
+            max_value=2.0,
+            value=st.session_state.temperature,
+            step=0.1,
+            help="Semakin tinggi nilai (mendekati 2.0), semakin kreatif dan beragam hasilnya. Semakin rendah (mendekati 0), semakin konsisten dan fokus hasilnya."
+        )
+        st.session_state.temperature = temperature
+        
+        # Explanation of temperature
+        st.info("""
+        **Panduan Temperatur:**
+        - 0.0-0.3: Jawaban sangat konsisten dan faktual
+        - 0.4-0.7: Keseimbangan antara kreativitas dan konsistensi
+        - 0.8-1.2: Lebih kreatif dan beragam
+        - 1.3-2.0: Sangat kreatif dan eksploratif
+        """)
 
     # Main content
     website_url = st.text_input("Masukkan URL website:")
@@ -151,38 +183,62 @@ def main():
             # Inisialisasi OpenAI client dengan API key dari pengguna
             openai_client = OpenAI(api_key=st.session_state.openai_api_key)
             
-            st.write("Melakukan scraping website...")
+            # Progress container
+            progress_text = st.empty()
+            progress_bar = st.progress(0)
+            
+            # Step 1: Scraping
+            progress_text.text("Melakukan scraping website...")
+            progress_bar.progress(0.2)
             scraped_data = scrape_website(website_url, st.session_state.jina_api_key)
             
             if scraped_data:
-                filename = generate_filename()
+                filename = f"scraped_data_{time.strftime('%Y%m%d-%H%M%S')}"
                 
-                st.write("Membersihkan data...")
-                cleaned_data = clean_data(scraped_data, openai_client)
+                # Step 2: Cleaning
+                progress_text.text("Membersihkan data...")
+                progress_bar.progress(0.4)
+                cleaned_data = clean_data(scraped_data, openai_client, st.session_state.temperature)
 
-                st.write("Menghasilkan pertanyaan dan jawaban...")
-                questions = generate_questions(cleaned_data, openai_client, num_questions)
+                # Step 3: Generating questions
+                progress_text.text("Menghasilkan pertanyaan...")
+                progress_bar.progress(0.6)
+                questions = generate_questions(cleaned_data, openai_client, num_questions, st.session_state.temperature)
 
+                # Step 4: Generating answers
                 qa_pairs = []
-                for question in questions:
-                    answer = get_ai_answer(question, cleaned_data, openai_client)
+                total_questions = len(questions)
+                for i, question in enumerate(questions):
+                    progress_text.text(f"Menghasilkan jawaban untuk pertanyaan {i+1} dari {total_questions}...")
+                    progress = 0.6 + (0.4 * (i + 1) / total_questions)
+                    progress_bar.progress(progress)
+                    
+                    answer = get_ai_answer(question, cleaned_data, openai_client, st.session_state.temperature)
                     qa_pairs.append({"Pertanyaan": question, "Jawaban": answer})
 
-                csv_file = save_to_csv(qa_pairs, filename)
+                # Clear progress indicators
+                progress_text.empty()
+                progress_bar.empty()
+
                 st.success("Proses selesai!")
                 
-                # Menampilkan hasil
-                st.subheader("Hasil Scraping:")
-                for i, qa in enumerate(qa_pairs, 1):
-                    st.write(f"Q{i}: {qa['Pertanyaan']}")
-                    st.write(f"A{i}: {qa['Jawaban']}")
-                    st.write("---")
+                # Menampilkan hasil dengan expander
+                with st.expander("Lihat Hasil", expanded=True):
+                    for i, qa in enumerate(qa_pairs, 1):
+                        st.markdown(f"**Q{i}: {qa['Pertanyaan']}**")
+                        st.markdown(f"A{i}: {qa['Jawaban']}")
+                        st.markdown("---")
                 
+                # Save to CSV
+                csv_file = save_to_csv(qa_pairs, filename)
+                
+                # Download button
                 st.download_button(
-                    "Unduh CSV", 
-                    data=open(csv_file, "rb"), 
-                    file_name=csv_file, 
-                    mime="text/csv"
+                    "📥 Unduh Hasil (CSV)",
+                    data=open(csv_file, "rb"),
+                    file_name=f"{filename}.csv",
+                    mime="text/csv",
+                    help="Klik untuk mengunduh hasil dalam format CSV"
                 )
 
         except Exception as e:
