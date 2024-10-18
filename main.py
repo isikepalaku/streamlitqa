@@ -61,7 +61,7 @@ def generate_questions(document: str, openai_client, num_questions: int = 5) -> 
         response = openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "Anda adalah ahli hukum pidana berpengalaman yang membuat pertanyaan dari konteks yang diberikan"},
+                {"role": "system", "content": "Anda adalah seorang penyidik. Tugas Anda adalah mencari dan mengidentifikasi tindak pidana, serta bertanya tentang pasal yang relevan yang dapat digunakan untuk melaporkan tindak pidana yang ditemukan berdasarkan undang-undang di Indonesia. Anda akan membuat pertanyaan yang bertujuan untuk mengonfirmasi tindak pidana dan mengidentifikasi pasal yang sesuai, termasuk bukti atau elemen yang diperlukan untuk melengkapi laporan pidana. Pastikan pertanyaan Anda membantu menelusuri apakah elemen-elemen tindak pidana terpenuhi dan bagaimana tindak pidana tersebut dapat dilaporkan."},
                 {"role": "user", "content": prompt}
             ]
         )
@@ -92,9 +92,9 @@ def get_ai_answer(question: str, document: str, openai_client) -> str:
 
     try:
         response = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "anda adalah ahli hukum pidana."},
+                {"role": "system", "content": "Anda adalah seorang penyidik kepolisian Indonesia yang sangat ahli dalam hukum pidana dan khususnya dalam penerapan pasal-pasal lex specialis dalam undang-undang. Tugas Anda adalah memberikan jawaban yang rinci dan akurat terkait penerapan pasal dalam undang-undang yang relevan. Ketika menjawab, sebutkan pasal yang berlaku, jelaskan bagaimana pasal tersebut diterapkan dalam konteks kasus yang diberikan, dan sebutkan elemen-elemen hukum yang harus dipenuhi untuk pasal tersebut dapat diterapkan. Berikan juga contoh nyata atau hipotetis yang menunjukkan bagaimana pasal tersebut telah atau dapat diterapkan."},
                 {"role": "user", "content": prompt}
             ]
         )
