@@ -93,16 +93,16 @@ def get_ai_answer(question: str, document: str, openai_client, temperature: floa
 
     {document}
 
-    Anda adalah penyidik kepolisian ahli hukum pidana *lex specialis* di luar KUHP, seperti UU Perlindungan Konsumen, UU Jasa Keuangan, UU Fidusia, UU Tindak Pidana Korupsi, dan UU Lingkungan Hidup. Gunakan informasi dari dokumen di atas untuk menjawab pertanyaan berikut dengan detail dan akurat. Sebutkan pasal yang relevan, jelaskan penerapannya dalam konteks kasus, dan sebutkan elemen-elemen hukum yang harus dipenuhi agar pasal tersebut dapat diterapkan. Selain itu, jelaskan langkah-langkah dan tindakan investigatif apa yang harus dilakukan untuk memastikan bahwa semua unsur dari pasal tersebut terpenuhi:
+    Anda adalah penyidik kepolisian ahli hukum pidana *lex specialis* di luar KUHP, seperti UU Perlindungan Konsumen, UU Jasa Keuangan, UU Fidusia, UU Tindak Pidana Korupsi, dan UU Lingkungan Hidup. Gunakan informasi dari dokumen di atas untuk menjawab pertanyaan berikut dengan detail dan akurat, merujuk pada pasal yang relevan dan elemen hukum yang diperlukan:
 
     Pertanyaan: {question}
     """
 
     try:
         response = openai_client.chat.completions.create(
-            model="gpt-4o-mini",  # Pastikan model ini tersedia di akun OpenAI Anda
+            model="gpt-4",  # Pastikan model ini tersedia di akun OpenAI Anda
             messages=[
-                {"role": "system", "content": "Anda adalah penyidik kepolisian ahli hukum pidana lex specialis di luar KUHP. Tugas Anda adalah memberikan jawaban yang rinci dan akurat berdasarkan dokumen yang disediakan, merujuk pada pasal yang relevan, serta menjelaskan penerapannya dalam konteks kasus dan elemen-elemen hukum yang harus dipenuhi. Selain itu, jelaskan langkah-langkah dan tindakan investigatif yang perlu dilakukan untuk memastikan semua unsur dari pasal tersebut terpenuhi."},
+                {"role": "system", "content": "Anda adalah penyidik kepolisian ahli hukum pidana lex specialis di luar KUHP. Tugas Anda adalah memberikan jawaban yang rinci dan akurat berdasarkan dokumen yang disediakan, merujuk pada pasal yang relevan, serta menjelaskan penerapannya dalam konteks kasus dan elemen-elemen hukum yang harus dipenuhi."},
                 {"role": "user", "content": prompt}
             ],
             temperature=temperature
