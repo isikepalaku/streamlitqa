@@ -54,19 +54,20 @@ def clean_data(text: str, openai_client, temperature: float) -> str:
         return text
 
 def generate_questions(document: str, openai_client, num_questions: int = 5, temperature: float = 0.7) -> List[str]:
-    """Menghasilkan pertanyaan berdasarkan dokumen."""
+    """Menghasilkan pertanyaan berdasarkan dokumen yang diberikan sebagai konteks."""
     prompt = f"""Berdasarkan dokumen berikut, buatlah {num_questions} pertanyaan yang mendetail dan beragam. 
-    Pertanyaan-pertanyaan ini harus mencerminkan analisis hukum mendalam tentang isi dokumen:
+    Pertanyaan-pertanyaan ini harus mencerminkan analisis hukum mendalam dan mengacu pada informasi spesifik yang terdapat dalam dokumen:
 
     {document}
 
-    Buat pertanyaan-pertanyaan yang beragam dan mendalam."""
+    Pastikan setiap pertanyaan yang dibuat mencakup upaya untuk mengidentifikasi tindak pidana, mengeksplorasi elemen-elemen hukum yang mungkin berlaku, dan mengonfirmasi pasal yang relevan serta langkah-langkah investigasi yang perlu diambil untuk melengkapi laporan pidana.
+    """
 
     try:
         response = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4",  # Pastikan model ini sesuai dengan akun Anda
             messages=[
-                {"role": "system", "content": "Anda adalah seorang penyidik. Tugas Anda adalah mencari dan mengidentifikasi tindak pidana, serta bertanya tentang pasal yang relevan yang dapat digunakan untuk melaporkan tindak pidana yang ditemukan berdasarkan undang-undang di Indonesia. Anda akan membuat pertanyaan yang bertujuan untuk mengonfirmasi tindak pidana dan mengidentifikasi pasal yang sesuai, termasuk bukti atau elemen yang diperlukan untuk melengkapi laporan pidana. Pastikan pertanyaan Anda membantu menelusuri apakah elemen-elemen tindak pidana terpenuhi dan bagaimana tindak pidana tersebut dapat dilaporkan."},
+                {"role": "system", "content": "Anda adalah seorang penyidik yang bertugas mencari dan mengidentifikasi tindak pidana berdasarkan informasi dari dokumen. Anda akan membuat pertanyaan yang bertujuan untuk mengonfirmasi tindak pidana dan mengeksplorasi pasal yang relevan, termasuk elemen hukum dan bukti yang diperlukan, dengan menggunakan konteks dari dokumen."},
                 {"role": "user", "content": prompt}
             ],
             temperature=temperature
