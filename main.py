@@ -88,34 +88,37 @@ def generate_questions(document: str, openai_client, num_questions: int = 5, tem
         return [f"Pertanyaan default {i+1}" for i in range(num_questions)]
 
 def get_ai_answer(question: str, document: str, openai_client, temperature: float) -> str:
-    """Mendapatkan jawaban dari OpenAI."""
+    """Mendapatkan jawaban dari OpenAI berdasarkan dokumen yang diberikan."""
     prompt = f"""Berdasarkan dokumen berikut:
 
     {document}
 
-    Jawablah pertanyaan ini dengan detail dan akurat:
-    {question}"""
+    Anda adalah penyidik kepolisian ahli hukum pidana *lex specialis* di luar KUHP, seperti UU Perlindungan Konsumen, UU Jasa Keuangan, UU Fidusia, UU Tindak Pidana Korupsi, dan UU Lingkungan Hidup. Gunakan informasi dari dokumen di atas untuk menjawab pertanyaan berikut dengan detail dan akurat, merujuk pada pasal yang relevan dan elemen hukum yang diperlukan:
+
+    Pertanyaan: {question}
+    """
 
     try:
         response = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "Anda adalah seorang penyidik kepolisian Indonesia yang sangat ahli dalam hukum pidana dan khususnya dalam penerapan pasal-pasal lex specialis yang berlaku di luar KUHP, seperti UU Perlindungan Konsumen, UU sektor jasa keuangan, UU fidusia, UU Tindak Pidana Korupsi, UU Lingkungan Hidup, dan undang-undang lainnya yang relevan untuk Subdit di Ditreskrimsus Polda Sulse. jawab dengan rinci dan akurat terkait penerapan pasal dalam undang-undang yang relevan. Ketika menjawab, sebutkan pasal yang berlaku, jelaskan bagaimana pasal tersebut diterapkan dalam konteks kasus yang diberikan, dan sebutkan elemen-elemen hukum yang harus dipenuhi untuk pasal tersebut dapat diterapkan. Berikan juga contoh nyata atau hipotetis yang menunjukkan bagaimana pasal tersebut telah atau dapat diterapkan."},
+                {"role": "system", "content": "Anda adalah penyidik kepolisian ahli hukum pidana lex specialis di luar KUHP. Tugas Anda adalah memberikan jawaban yang rinci dan akurat berdasarkan dokumen yang disediakan, merujuk pada pasal yang relevan, serta menjelaskan penerapannya dalam konteks kasus dan elemen-elemen hukum yang harus dipenuhi."},
                 {"role": "user", "content": prompt}
             ],
             temperature=temperature
         )
         
-        if response.choices and response.choices[0].message:
-            content = response.choices[0].message.content
-            return content.strip() if content else "Tidak ada jawaban yang dihasilkan."
-        else:
-            st.error("Tidak ada respons dari OpenAI.")
-            return "Tidak ada jawaban yang dihasilkan."
+        content = response.choices[0].message.content if response.choices else None
+        
+        if content is None:
+            st.warning("Respons dari API kosong. Menggunakan jawaban default.")
+            return "Jawaban default"
+        
+        return content.strip()
 
     except Exception as e:
-        st.error(f"Error saat mendapatkan jawaban AI: {e}")
-        return "Terjadi kesalahan saat menghasilkan jawaban."
+        st.error(f"Error saat mendapatkan jawaban: {e}")
+        return "Jawaban default"
 
 def save_to_csv(qa_pairs: List[Dict], filename: str) -> str:
     """Menyimpan pertanyaan dan jawaban ke file CSV."""
