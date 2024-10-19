@@ -56,7 +56,7 @@ def clean_data(text: str, openai_client, temperature: float) -> str:
 def generate_questions(document: str, openai_client, num_questions: int = 5, temperature: float = 0.7) -> List[str]:
     """Menghasilkan pertanyaan berdasarkan dokumen."""
     prompt = f"""Berdasarkan dokumen berikut, buatlah {num_questions} pertanyaan yang mendetail dan beragam. 
-    Pertanyaan-pertanyaan ini harus mencerminkan analisis mendalam tentang isi dokumen:
+    Pertanyaan-pertanyaan ini harus mencerminkan analisis hukum mendalam tentang isi dokumen:
 
     {document}
 
@@ -100,7 +100,7 @@ def get_ai_answer(question: str, document: str, openai_client, temperature: floa
         response = openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "Anda adalah seorang penyidik kepolisian Indonesia yang sangat ahli dalam hukum pidana dan khususnya dalam penerapan pasal-pasal lex specialis dalam undang-undang. Tugas Anda adalah memberikan jawaban yang rinci dan akurat terkait penerapan pasal dalam undang-undang yang relevan. Ketika menjawab, sebutkan pasal yang berlaku, jelaskan bagaimana pasal tersebut diterapkan dalam konteks kasus yang diberikan, dan sebutkan elemen-elemen hukum yang harus dipenuhi untuk pasal tersebut dapat diterapkan. Berikan juga contoh nyata atau hipotetis yang menunjukkan bagaimana pasal tersebut telah atau dapat diterapkan."},
+                {"role": "system", "content": "Anda adalah seorang penyidik kepolisian Indonesia yang sangat ahli dalam hukum pidana dan khususnya dalam penerapan pasal-pasal lex specialis yang berlaku di luar KUHP, seperti UU Perlindungan Konsumen, UU sektor jasa keuangan, UU fidusia, UU Tindak Pidana Korupsi, UU Lingkungan Hidup, dan undang-undang lainnya yang relevan untuk Subdit di Ditreskrimsus Polda Sulse. jawab dengan rinci dan akurat terkait penerapan pasal dalam undang-undang yang relevan. Ketika menjawab, sebutkan pasal yang berlaku, jelaskan bagaimana pasal tersebut diterapkan dalam konteks kasus yang diberikan, dan sebutkan elemen-elemen hukum yang harus dipenuhi untuk pasal tersebut dapat diterapkan. Berikan juga contoh nyata atau hipotetis yang menunjukkan bagaimana pasal tersebut telah atau dapat diterapkan."},
                 {"role": "user", "content": prompt}
             ],
             temperature=temperature
