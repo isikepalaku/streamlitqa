@@ -37,7 +37,7 @@ def clean_data(text: str, openai_client, temperature: float) -> str:
     prompt = f"Bersihkan teks berikut dan buat menjadi lebih terstruktur:\n\n{text}"
     try:
         response = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "Kamu adalah asisten AI yang bertugas membersihkan dan menstrukturkan data teks."},
                 {"role": "user", "content": prompt}
@@ -65,7 +65,7 @@ def generate_questions(document: str, openai_client, num_questions: int = 5, tem
 
     try:
         response = openai_client.chat.completions.create(
-            model="gpt-4",  # Pastikan model ini sesuai dengan akun Anda
+            model="gpt-4o-mini",  # Pastikan model ini sesuai dengan akun Anda
             messages=[
                 {"role": "system", "content": "Anda adalah seorang penyidik yang bertugas mencari dan mengidentifikasi tindak pidana berdasarkan informasi dari dokumen. Anda akan membuat pertanyaan yang bertujuan untuk mengonfirmasi tindak pidana dan mengeksplorasi pasal yang relevan, termasuk elemen hukum dan bukti yang diperlukan, dengan menggunakan konteks dari dokumen."},
                 {"role": "user", "content": prompt}
@@ -101,7 +101,7 @@ def get_ai_answer(question: str, document: str, openai_client, temperature: floa
 
     try:
         response = openai_client.chat.completions.create(
-            model="gpt-4",  # Pastikan model ini tersedia di akun OpenAI Anda
+            model="gpt-4o-mini",  # Pastikan model ini tersedia di akun OpenAI Anda
             messages=[
                 {"role": "system", "content": "Anda adalah penyidik kepolisian ahli hukum pidana lex specialis di luar KUHP. Tugas Anda adalah memberikan jawaban yang rinci dan akurat berdasarkan dokumen yang disediakan, merujuk pada pasal yang relevan, serta menjelaskan penerapannya dalam konteks kasus dan elemen-elemen hukum yang harus dipenuhi."},
                 {"role": "user", "content": prompt}
