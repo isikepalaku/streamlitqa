@@ -67,7 +67,7 @@ def generate_questions(document: str, openai_client, num_questions: int = 5, tem
         response = openai_client.chat.completions.create(
             model="gpt-4o-mini",  # Pastikan model ini sesuai dengan akun Anda
             messages=[
-                {"role": "system", "content": "Anda bertugas untuk membuat pertanyaan berdasarkan konteks dari dokumen yang diberikan. Dokumen tersebut mengandung informasi yang perlu diolah menjadi pertanyaan yang relevan untuk penyelidikan lebih lanjut. Harap buat serangkaian pertanyaan yang berfokus pada mengidentifikasi informasi penting dari dokumen tersebut tanpa melakukan analisis atau konfirmasi tindak pidana"},
+                {"role": "system", "content": "Anda adalah ahli hukum yang membuat pertanyaan"},
                 {"role": "user", "content": prompt}
             ],
             temperature=temperature
