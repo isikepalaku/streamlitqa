@@ -55,12 +55,11 @@ def clean_data(text: str, openai_client, temperature: float) -> str:
 
 def generate_questions(document: str, openai_client, num_questions: int = 5, temperature: float = 0.7) -> List[str]:
     """Menghasilkan pertanyaan berdasarkan dokumen yang diberikan sebagai konteks."""
-    prompt = f"""Berdasarkan dokumen berikut, buatlah {num_questions} pertanyaan yang mendetail dan beragam. 
-    Pertanyaan-pertanyaan ini harus mencerminkan analisis hukum mendalam dan mengacu pada informasi spesifik yang terdapat dalam dokumen:
+    prompt = f"""Berdasarkan dokumen berikut, buatlah {num_questions} pertanyaan hukum yang mendetail tanpa kalimat pembuka atau penjelasan tambahan. Hanya tuliskan pertanyaannya langsung dalam format daftar:
 
     {document}
 
-    Pastikan setiap pertanyaan yang dibuat mencakup upaya untuk mengidentifikasi tindak pidana, mengeksplorasi elemen-elemen hukum yang mungkin berlaku, dan mengonfirmasi pasal yang relevan serta langkah-langkah investigasi yang perlu diambil untuk melengkapi laporan pidana.
+    Pastikan setiap pertanyaan mencakup aspek-aspek hukum yang relevan, seperti tindak pidana, elemen hukum, pasal yang relevan, dan langkah investigasi yang diperlukan.
     """
 
     try:
@@ -94,7 +93,7 @@ def get_ai_answer(question: str, document: str, openai_client, temperature: floa
 
     {document}
 
-    Anda adalah penyidik kepolisian ahli hukum pidana *lex specialis* di luar KUHP, seperti UU Perlindungan Konsumen, UU Jasa Keuangan, UU Fidusia, UU Tindak Pidana Korupsi, dan UU Lingkungan Hidup. Gunakan informasi dari dokumen di atas untuk menjawab pertanyaan berikut dengan detail dan akurat, merujuk pada pasal yang relevan dan elemen hukum yang diperlukan:
+    Jawab pertanyaan berikut ini secara langsung tanpa kalimat pembuka atau penjelasan tambahan. Jawaban harus merujuk pada pasal yang relevan dan elemen hukum yang diperlukan:
 
     Pertanyaan: {question}
     """
@@ -103,7 +102,7 @@ def get_ai_answer(question: str, document: str, openai_client, temperature: floa
         response = openai_client.chat.completions.create(
             model="gpt-4o-mini",  # Pastikan model ini tersedia di akun OpenAI Anda
             messages=[
-                {"role": "system", "content": "Anda adalah penyidik kepolisian ahli hukum pidana lex specialis di luar KUHP. Tugas Anda adalah memberikan jawaban yang rinci dan akurat berdasarkan dokumen yang disediakan, merujuk pada pasal yang relevan, serta menjelaskan penerapannya dalam konteks kasus dan elemen-elemen hukum yang harus dipenuhi."},
+                {"role": "system", "content": "Anda adalah penyidik kepolisian ahli hukum pidana lex specialis di luar KUHP. Tugas Anda adalah memberikan jawaban yang rinci dan akurat berdasarkan dokumen yang disediakan."},
                 {"role": "user", "content": prompt}
             ],
             temperature=temperature
